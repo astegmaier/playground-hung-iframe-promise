@@ -1,6 +1,6 @@
 # Hung Iframe Promise Playground</h1>
 
-This project tests the behavior of promises that execute within an iframe that are awaited from outside the iframe. Do they hang?
+This page shows a memory leak that can occur if code on the main window awaits a promise from within the iframe before performing memory cleanup. If the iframe is removed before the iframe promise resolves, the awaiting function will halt execution and cleanup code will never run.
 
 For more details [see it running live](https://astegmaier.github.io/playground-hung-iframe-promise/).
 
