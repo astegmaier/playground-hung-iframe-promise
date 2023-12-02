@@ -4,53 +4,47 @@ class LeakyThing {}
 
 document.getElementById("add-iframe").onclick = async () => {
   const iframe = await getIframe();
-  console.log("Adding a LeakyThing to leakyThingRetainerArray.");
+
+  console.log(`Adding a LeakyThing to leakyThingRetainerArray.`);
   const leakyThing = new LeakyThing();
   leakyThingRetainerSet.add(leakyThing);
 
+  // If the iframe is removed before iframe.contentWindow.wait() completes, execution of this function will stop.
+  // No error is thrown by iframe.contentWindow.wait(), and the leakyThing will not be cleaned up.
   try {
-    const result = await iframe.contentWindow.longAwaitFunction();
-    console.log(
-      "Got this result from iframe.contentWindow.longAwaitFunction",
-      result
-    );
-  } catch (e) {
-    console.log(
-      "Got this error from iframe.contentWindow.longAwaitFunction",
-      e
-    );
+    await iframe.contentWindow.wait(3000);
+  } catch (error) {
+    console.error(error);
   }
 
   leakyThingRetainerSet.delete(leakyThing);
-  console.log("Cleaned up the LeakyThing");
+  console.log(
+    `Cleaned up a LeakyThing. ${window.leakyThingRetainerSet.size} LeakyThings remain.`
+  );
 };
 
 function getIframe() {
   return new Promise((resolve) => {
     const iframe = document.createElement("iframe");
-    iframe.style.height = "400px";
-    iframe.style.backgroundColor = "lightgrey";
     iframe.onload = () => resolve(iframe);
     iframe.srcdoc = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <script type="text/javascript" src="./iframe.js"></script>
-    </head>
-    <body>
-      <h1>Hi, I am the iframe.</h1>
-    </body>
-    </html>
-  `;
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <script type="text/javascript" src="./iframe.js"></script>
+      </head>
+      <body>
+        <h1>Hi, I am an iframe.</h1>
+      </body>
+      </html>
+    `;
     document.getElementById("iframe-container").appendChild(iframe);
   });
 }
 
-document.getElementById("remove-iframe").onclick = () => {
+document.getElementById("remove-iframes").onclick = () => {
   document.getElementById("iframe-container").textContent = "";
-  console.log("iframe removed");
+  console.log(
+    `Iframe removed. We have leaked ${window.leakyThingRetainerSet.size} LeakyThings.`
+  );
 };
-
-// function wait(ms) {
-//   return new Promise((resolve) => setTimeout(resolve, ms));
-// }

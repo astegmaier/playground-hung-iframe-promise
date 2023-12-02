@@ -9,27 +9,45 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
+    <style>
+      iframe { 
+        width: 320px;
+        height: 100px;
+        background-color: lightgray;
+        border: 2px solid black;
+        box-sizing: border-box;
+      }
+      #iframe-container {
+        height: 110px;
+        background-color: grey;
+        padding: 5px;
+        overflow-y: auto;
+      }
+    </style>
   </head>
   <body>
     <h1>
-      Test page for promises executing within an iframe that are awaited outside
+      Hung Iframe Promises Playground
     </h1>
-    <div>
+    <p>
+      This page shows a memory leak that can occur if code on the main window awaits a promise from within the iframe before performing memory cleanup.
+      If the iframe is removed before the iframe promise resolves, the awaiting function will halt execution and cleanup code will never run.
+    </p>
       <button id="add-iframe">Add Iframe</button>
-      <button id="remove-iframe">Remove Iframe</button>
+      <button id="remove-iframes">Remove All Iframes</button>
     </div>
     <hr />
-    <div
-      id="iframe-container"
-      style="height: 400px; background-color: grey"
-    ></div>
+    <div id="iframe-container"></div>
     <hr />
     <div>
       We are running the following JavaScript code on this page (see
-      <a href="https://github.com/astegmaier/iframe-closed-playground"
+      <a href="https://github.com/astegmaier/playground-hung-iframe-promise"
         >github repo</a
       >):
     </div>
+    <h2>Iframe Code</h2>
+    <pre><code class="language-javascript" id="code-iframe"></code></pre>
+    <h2>Main Window Code</h2>
     <pre><code class="language-javascript" id="code"></code></pre>
     <script src="./index.js"></script>
     <script
@@ -42,6 +60,10 @@
       fetch("./index.js")
         .then((response) => response.text())
         .then((code) => (document.getElementById("code").textContent = code))
+        .then(() => hljs.highlightAll());
+      fetch("./iframe.js")
+        .then((response) => response.text())
+        .then((code) => (document.getElementById("code-iframe").textContent = code))
         .then(() => hljs.highlightAll());
     </script>
   </body>
