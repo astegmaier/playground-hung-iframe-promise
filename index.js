@@ -3,7 +3,7 @@ window.leakyThingRetainerSet = new Set();
 class LeakyThing {}
 
 document.getElementById("add-iframe").onclick = async () => {
-  const iframe = await addIframe();
+  const iframe = await getIframe();
   console.log("Adding a LeakyThing to leakyThingRetainerArray.");
   const leakyThing = new LeakyThing();
   leakyThingRetainerSet.add(leakyThing);
@@ -25,7 +25,7 @@ document.getElementById("add-iframe").onclick = async () => {
   console.log("Cleaned up the LeakyThing");
 };
 
-function addIframe() {
+function getIframe() {
   return new Promise((resolve) => {
     const iframe = document.createElement("iframe");
     iframe.style.height = "400px";
