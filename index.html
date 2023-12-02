@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hung Iframe Promise Playground</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/a11y-light.min.css"
+      integrity="sha512-WDk6RzwygsN9KecRHAfm9HTN87LQjqdygDmkHSJxVkVI7ErCZ8ZWxP6T8RvBujY1n2/E4Ac+bn2ChXnp5rnnHA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body>
+    <h1>
+      Test page for promises executing within an iframe that are awaited outside
+    </h1>
+    <div>
+      <button id="add-iframe-then-remove">Add Iframe Then Remove It</button>
+    </div>
+    <hr />
+    <div id="main" style="height: 400px; background-color: grey"></div>
+    <hr />
+    <div>
+      We are running the following JavaScript code on this page (see
+      <a href="https://github.com/astegmaier/iframe-closed-playground"
+        >github repo</a
+      >):
+    </div>
+    <pre><code class="language-javascript" id="code"></code></pre>
+    <script src="./index.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"
+      integrity="sha512-bgHRAiTjGrzHzLyKOnpFvaEpGzJet3z4tZnXGjpsCcqOnAH6VGUx9frc5bcIhKTVLEiCO6vEhNAgx5jtLUYrfA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+      fetch("./index.js")
+        .then((response) => response.text())
+        .then((code) => (document.getElementById("code").textContent = code))
+        .then(() => hljs.highlightAll());
+    </script>
+  </body>
+</html>
