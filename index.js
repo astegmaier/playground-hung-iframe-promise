@@ -1,25 +1,55 @@
-document.getElementById("add-iframe-then-remove").onclick = async () => {
+let leakyThingRetainerSet = new Set();
+
+class LeakyThing {}
+
+document.getElementById("add-iframe").onclick = () => {
+  addIframe(async (iframe) => {
+    console.log("Adding a LeakyThing to leakyThingRetainerArray.");
+    const leakyThing = new LeakyThing();
+    leakyThingRetainerSet.add(leakyThing);
+
+    try {
+      const result = await iframe.contentWindow.longAwaitFunction();
+      console.log(
+        "Got this result from iframe.contentWindow.longAwaitFunction",
+        result
+      );
+    } catch (e) {
+      console.log(
+        "Got this error from iframe.contentWindow.longAwaitFunction",
+        e
+      );
+    }
+
+    leakyThingRetainerSet.delete(leakyThing);
+    console.log("Cleaned up the LeakyThing");
+  });
+};
+
+function addIframe(onIframeLoad) {
   const iframe = document.createElement("iframe");
-  iframe.id = "iframe";
   iframe.style.height = "400px";
   iframe.style.backgroundColor = "lightgrey";
+  iframe.onload = () => onIframeLoad(iframe);
   iframe.srcdoc = `
-          <!DOCTYPE html>
-          <html>
-          <body>
-            <h1>Hi, I am the iframe.</h1>
-          </body>
-          </html>
-        `;
-  document.getElementById("main").appendChild(iframe);
-  console.log("iframe added");
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <script type="text/javascript" src="./iframe.js"></script>
+    </head>
+    <body>
+      <h1>Hi, I am the iframe.</h1>
+    </body>
+    </html>
+  `;
+  document.getElementById("iframe-container").appendChild(iframe);
+}
 
-  await wait(100);
-
-  document.getElementById("main").textContent = "";
+document.getElementById("remove-iframe").onclick = () => {
+  document.getElementById("iframe-container").textContent = "";
   console.log("iframe removed");
 };
 
-function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+// function wait(ms) {
+//   return new Promise((resolve) => setTimeout(resolve, ms));
+// }

@@ -15,10 +15,14 @@
       Test page for promises executing within an iframe that are awaited outside
     </h1>
     <div>
-      <button id="add-iframe-then-remove">Add Iframe Then Remove It</button>
+      <button id="add-iframe">Add Iframe</button>
+      <button id="remove-iframe">Remove Iframe</button>
     </div>
     <hr />
-    <div id="main" style="height: 400px; background-color: grey"></div>
+    <div
+      id="iframe-container"
+      style="height: 400px; background-color: grey"
+    ></div>
     <hr />
     <div>
       We are running the following JavaScript code on this page (see
