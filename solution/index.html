@@ -27,14 +27,12 @@
   </head>
   <body>
     <h1>
-      Hung Iframe Promises Playground
+      Hung Iframe Promises Playground - Solution Proof-of-Concept
     </h1>
     <p>
-      This page shows a memory leak that can occur if code on the main window awaits a promise from within the iframe before performing memory cleanup.
-      If the iframe is removed before the iframe promise resolves, the awaiting function will halt execution and cleanup code will never run.
-    </p>
-    <p>
-      See this <a href="./solution/index.html">proof-of-concept solution</a> for an idea about how to fix this problem in a general way.
+      This page shows a proof-of-concept of how to fix <a href="../index.html">the original problem</a> of hung iframe promises in a general way.
+      By overriding the Promise constructor inside the iframe window, we are able to capture all the "reject" functions. Then, when the iframe is removed,
+      we can ensure that all promises created inside the iframe get rejected instead of silently pausing.
     </p>
       <button id="add-iframe">Add Iframe</button>
       <button id="remove-iframes">Remove All Iframes</button>
