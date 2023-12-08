@@ -1,11 +1,43 @@
+//////////////
+// Solution //
+//////////////
+
+const promiseRejectFns = new Set();
+
+function patchIframePromises(iframe) {
+  const originalPromise = iframe.contentWindow.Promise;
+
+  iframe.contentWindow.Promise = function (executor) {
+    return new originalPromise((resolve, reject) => {
+      promiseRejectFns.add(reject);
+      executor(resolve, reject);
+    });
+  };
+
+  iframe.contentWindow.addEventListener("unload", () => {
+    console.log(
+      `Iframe unload event fired. Rejecting ${promiseRejectFns.size} promises.`
+    );
+    for (const rejectFn of promiseRejectFns) {
+      rejectFn(new Error("Promise rejected due to iframe disposal"));
+    }
+    promiseRejectFns.clear();
+  });
+}
+
+///////////////////
+// Original Code //
+///////////////////
+
 window.leakyThingRetainerSet = new Set();
 
 class LeakyThing {}
 
 document.getElementById("add-iframe").onclick = async () => {
   const iframe = await getIframe();
+  patchIframePromises(iframe);
 
-  console.log(`Adding a LeakyThing to leakyThingRetainerArray.`);
+  console.log("Adding a LeakyThing to leakyThingRetainerArray.");
   const leakyThing = new LeakyThing();
   leakyThingRetainerSet.add(leakyThing);
 
@@ -47,4 +79,12 @@ document.getElementById("remove-iframes").onclick = () => {
   console.log(
     `Iframe removed. We have leaked ${window.leakyThingRetainerSet.size} LeakyThings right now.`
   );
+};
+
+document.getElementById("reject-all-promises").onclick = () => {
+  console.log(`Manually Rejecting ${promiseRejectFns.size} promises.`);
+  for (const rejectFn of promiseRejectFns) {
+    rejectFn?.(new Error(`Promise rejected manually`));
+  }
+  promiseRejectFns.clear();
 };
