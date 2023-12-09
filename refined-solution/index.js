@@ -33,6 +33,9 @@ function patchIframePromises(windowContext) {
     }
   }
   windowContext.Promise = IFramePromise;
+  windowContext.DEBUG_ORIGINAL_PROMISE = OriginalIframePromise;
+  windowContext.DEBUG_SPIKED_PROMISE = IFramePromise;
+
   const rejectAllPromises = () => {
     console.log(`Rejecting ${promiseRejectFns?.size ?? 0} IframePromises.`);
     if (promiseRejectFns) {
@@ -107,7 +110,15 @@ document.getElementById("add-iframe-fetch-scenario").onclick = async () => {
   console.log("Starting scenario");
   leakedThings += 1;
   const iframe = await getPatchedIframe();
-  const iframeFetchPromise = iframe.contentWindow.makeFetchCallFromIframe();
+  const iframeFetchPromise = iframe.contentWindow.basicFetch();
+  // The promise returned by the fetch() call within the iframe is an instance of the original Promise class, not the overridden subclass.
+  // However, in testing, this doesn't seem to be a problem because the fetch promise gets rejected when the iframe is removed.
+  console.log(
+    "iframeFetchPromise instanceof original iframe.contentWindow.Promise",
+    iframeFetchPromise instanceof iframe.contentWindow.DEBUG_ORIGINAL_PROMISE,
+    "iframeFetchPromise instanceof subclass IframePromise",
+    iframeFetchPromise instanceof iframe.contentWindow.DEBUG_SPIKED_PROMISE
+  );
   await iframeFetchPromise
     .then((res) => {
       console.log("first then() block called - generating json from response");
@@ -124,6 +135,37 @@ document.getElementById("add-iframe-fetch-scenario").onclick = async () => {
     });
   console.log(`All promises resolved.`);
 };
+
+document.getElementById("add-iframe-fetch-chained-wait-scenario").onclick =
+  async () => {
+    console.log("Starting scenario");
+    leakedThings += 1;
+    const iframe = await getPatchedIframe();
+    const iframeFetchPromise = iframe.contentWindow.fetchWithChainedWait();
+    console.log(
+      "iframeFetchPromise instanceof original iframe.contentWindow.Promise",
+      iframeFetchPromise instanceof iframe.contentWindow.DEBUG_ORIGINAL_PROMISE,
+      "iframeFetchPromise instanceof subclass IframePromise",
+      iframeFetchPromise instanceof iframe.contentWindow.DEBUG_SPIKED_PROMISE
+    );
+    await iframeFetchPromise
+      .then((res) => {
+        console.log(
+          "first then() block called - generating json from response"
+        );
+        return res.json();
+      })
+      .then((json) => {
+        console.log("second then() block called - logging json:", json);
+      })
+      .catch((error) => {
+        console.log("catch() block called - caught this Error:", error.message);
+      })
+      .finally(() => {
+        console.log("Post-catch then() block called.");
+      });
+    console.log(`All promises resolved.`);
+  };
 
 //////////////////
 // Test Helpers //

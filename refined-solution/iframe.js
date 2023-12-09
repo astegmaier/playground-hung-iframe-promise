@@ -6,8 +6,21 @@ window.wait = async (ms) => {
   console.log(`iframe wait() finished after ${ms / 1000} seconds.`);
 };
 
-window.makeFetchCallFromIframe = () => {
+window.basicFetch = () => {
   const fetchPromise = fetch("https://dummyjson.com/products/1");
   console.log(`iframe fetch() called.`);
   return fetchPromise;
+};
+
+window.fetchWithChainedWait = () => {
+  const fetchPromise = basicFetch();
+  return fetchPromise.then((result) => {
+    console.log("fetchPromise resolved. Starting iframe await of 3 seconds");
+    return new Promise((resolve) =>
+      setTimeout(() => {
+        console.log("finished iframe await of 3 seconds");
+        resolve(result);
+      }, 3000)
+    );
+  });
 };
