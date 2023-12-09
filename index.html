@@ -30,8 +30,9 @@
       Hung Iframe Promises Playground
     </h1>
     <p>
-      This page shows a memory leak that can occur if code on the main window awaits a promise from within the iframe before performing memory cleanup.
+      This page shows a memory leak that can occur if code on the main window awaits a promise from within a same-domain/sourceless iframe before performing memory cleanup.
       If the iframe is removed before the iframe promise resolves, the awaiting function will halt execution and cleanup code will never run.
+      This is a simplified version of a problem that occurred in a real application.
     </p>
     <p>
       See this <a href="./solution/index.html">proof-of-concept solution</a> for an idea about how to fix this problem in a general way.

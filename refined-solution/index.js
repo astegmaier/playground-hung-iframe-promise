@@ -9,7 +9,7 @@ function patchIframePromises(windowContext) {
   let promiseRejectFns = new Set();
   class IFramePromise extends OriginalIframePromise {
     // Our intention with setting Symbol.species to the original Promise class is to ensure that the things
-    // returned by  the then()/catch()/finally() methods are pure Promises and _not_ IframePromises.
+    // returned by the then()/catch()/finally() methods are pure Promises and _not_ IframePromises.
     // We don't want to track or dispose these derived promises on iframe removal, because that could cause legitimate logic to halt.
     // For example, a "then" handler after a "catch" block would never run if the "then" promise was disposed.
     // These handlers might even be registered in outside-of-iframe code, which would be especially bad.
