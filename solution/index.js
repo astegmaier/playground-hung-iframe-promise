@@ -41,11 +41,10 @@ document.getElementById("add-iframe").onclick = async () => {
   const leakyThing = new LeakyThing();
   leakyThingRetainerSet.add(leakyThing);
 
-  // If the iframe is removed before iframe.contentWindow.wait() completes, execution of this function will stop.
-  // No error is thrown by iframe.contentWindow.wait(), and the leakyThing will not be cleaned up.
   try {
     await iframe.contentWindow.wait(3000);
   } catch (error) {
+    // With the fix above, the iframe promise will reject if the iframe is removed before wait() completes, and we will catch here and continue to clean up the LeakyThing.
     console.log("Caught this error from iframe promise:", error.message);
   }
 

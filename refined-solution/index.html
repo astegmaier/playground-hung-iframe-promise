@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Hung Iframe Promise Playground</title>
+    <title>Hung Iframe Promise Playground - Refined Solution</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/a11y-light.min.css"
@@ -27,20 +27,17 @@
   </head>
   <body>
     <h1>
-      Hung Iframe Promises Playground
+      Hung Iframe Promises Playground - Refined Solution
     </h1>
     <p>
-      This page shows a memory leak that can occur if code on the main window awaits a promise from within the iframe before performing memory cleanup.
-      If the iframe is removed before the iframe promise resolves, the awaiting function will halt execution and cleanup code will never run.
-    </p>
-    <p>
-      See this <a href="./solution/index.html">proof-of-concept solution</a> for an idea about how to fix this problem in a general way.
-    </p>
-    <p>
-      Also see <a href="./refined-solution/index.html">a more refined solution</a> that handles more edge cases.
+      This page shows a more refined solution of how to fix <a href="../index.html">the original problem</a> of hung iframe promises in a general way.
+      In this approach, we extend the Promise class with a new version (IframePromise) that registers the 'reject' handlers so that they can be called when the iframe is removed.
+      We also use the Symbol.species property to ensure that we <em>don't</em> track 'derived' promises (i.e. promises returned from calling then/catch/finally on an IframePromise).
+      For example, if code outside the iframe calls .catch().then() on an IframePromise, we want to make sure that we don't reject the last .then() promise when the iframe is removed.
     </p>
       <button id="add-iframe">Add Iframe</button>
       <button id="remove-iframes">Remove All Iframes</button>
+      <button id="reject-all-promises">Reject All Promises</button>
     </div>
     <hr />
     <div id="iframe-container"></div>
