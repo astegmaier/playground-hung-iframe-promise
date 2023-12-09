@@ -69,6 +69,40 @@ document.getElementById("add-iframe-await-scenario").onclick = async () => {
   console.log(`All promises resolved - we have leaked ${leakedThings} things.`);
 };
 
+document.getElementById("add-iframe-promise-chain-scenario").onclick =
+  async () => {
+    console.log("Starting scenario");
+    leakedThings += 1;
+    const iframe = await getPatchedIframe();
+
+    await iframe.contentWindow
+      .wait(3000)
+      .then(() => {
+        leakedThings -= 1;
+        console.log("first then() block called - cleaning up leakedThings.");
+      })
+      .finally(() => {
+        console.log("first finally() block called.");
+      })
+      .catch((error) => {
+        leakedThings -= 1;
+        console.log(
+          "catch() block called - cleaning up leakedThings - caught this Error:",
+          error.message
+        );
+      }) // Both of of these post-catch blocks should run, regardless of whether the iframe is removed ahead of time or not.
+      .then(() => {
+        console.log("Post-catch then() block called.");
+      })
+      .finally(() => {
+        console.log("Post-catch finally() block called.");
+      });
+
+    console.log(
+      `All promises resolved - we have leaked ${leakedThings} things.`
+    );
+  };
+
 //////////////////
 // Test Helpers //
 //////////////////
