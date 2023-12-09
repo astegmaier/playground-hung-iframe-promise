@@ -51,16 +51,14 @@ function patchIframePromises(windowContext) {
   return rejectAllPromises;
 }
 
-///////////////
-// Test Code //
-///////////////
+////////////////////
+// Test Scenarios //
+////////////////////
 
-let leakedThings = 0;
-
-document.getElementById("add-iframe").onclick = async () => {
+document.getElementById("add-iframe-await-scenario").onclick = async () => {
   console.log("Starting scenario");
   leakedThings += 1;
-  const iframe = await getPatchedIframe("iframe.js");
+  const iframe = await getPatchedIframe();
   try {
     await iframe.contentWindow.wait(3000);
   } catch (error) {
@@ -71,8 +69,14 @@ document.getElementById("add-iframe").onclick = async () => {
   console.log(`All promises resolved - we have leaked ${leakedThings} things.`);
 };
 
-async function getPatchedIframe(scriptSrc) {
-  const iframe = await getIframe(scriptSrc);
+//////////////////
+// Test Helpers //
+//////////////////
+
+let leakedThings = 0;
+
+async function getPatchedIframe() {
+  const iframe = await getIframe();
   const rejectIframePromises = patchIframePromises(iframe.contentWindow);
 
   iframePromiseRejectFns.add(rejectIframePromises);
@@ -84,7 +88,7 @@ async function getPatchedIframe(scriptSrc) {
   return iframe;
 }
 
-function getIframe(scriptSrc) {
+function getIframe() {
   return new Promise((resolve) => {
     const iframe = document.createElement("iframe");
     iframe.onload = () => resolve(iframe);
@@ -92,7 +96,7 @@ function getIframe(scriptSrc) {
       <!DOCTYPE html>
       <html>
       <head>
-        <script type="text/javascript" src="./${scriptSrc}"></script>
+        <script type="text/javascript" src="./iframe.js"></script>
       </head>
       <body>
         <h1>Hi, I am an iframe.</h1>

@@ -35,7 +35,7 @@
       We also use the Symbol.species property to ensure that we <em>don't</em> track 'derived' promises (i.e. promises returned from calling then/catch/finally on an IframePromise).
       For example, if code outside the iframe calls .catch().then() on an IframePromise, we want to make sure that we don't reject the last .then() promise when the iframe is removed.
     </p>
-      <button id="add-iframe">Add Iframe</button>
+      <button id="add-iframe-await-scenario">Add Iframe - Await Scenario</button>
       <button id="remove-iframes">Remove All Iframes</button>
       <button id="reject-all-promises">Reject All Promises</button>
     </div>
@@ -48,9 +48,9 @@
         >github repo</a
       >):
     </div>
-    <h2>Iframe Code</h2>
+    <h2>Iframe Code (iframe.js)</h2>
     <pre><code class="language-javascript" id="code-iframe"></code></pre>
-    <h2>Main Window Code</h2>
+    <h2>Main Window Code (index.js)</h2>
     <pre><code class="language-javascript" id="code"></code></pre>
     <script src="./index.js"></script>
     <script
