@@ -103,6 +103,28 @@ document.getElementById("add-iframe-promise-chain-scenario").onclick =
     );
   };
 
+document.getElementById("add-iframe-fetch-scenario").onclick = async () => {
+  console.log("Starting scenario");
+  leakedThings += 1;
+  const iframe = await getPatchedIframe();
+  const iframeFetchPromise = iframe.contentWindow.makeFetchCallFromIframe();
+  await iframeFetchPromise
+    .then((res) => {
+      console.log("first then() block called - generating json from response");
+      return res.json();
+    })
+    .then((json) => {
+      console.log("second then() block called - logging json:", json);
+    })
+    .catch((error) => {
+      console.log("catch() block called - caught this Error:", error.message);
+    })
+    .finally(() => {
+      console.log("Post-catch then() block called.");
+    });
+  console.log(`All promises resolved.`);
+};
+
 //////////////////
 // Test Helpers //
 //////////////////
