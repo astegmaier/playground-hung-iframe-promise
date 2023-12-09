@@ -34,8 +34,8 @@ function patchIframePromises(windowContext) {
   }
   windowContext.Promise = IFramePromise;
   const rejectAllPromises = () => {
+    console.log(`Rejecting ${promiseRejectFns?.size ?? 0} IframePromises.`);
     if (promiseRejectFns) {
-      console.log(`Rejecting ${promiseRejectFns.size} IframePromises.`);
       for (const rejectFn of promiseRejectFns) {
         rejectFn?.(new Error(`Promise rejected due to iframe disposal`));
       }
