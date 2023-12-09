@@ -51,16 +51,28 @@ function patchIframePromises(windowContext) {
   return rejectAllPromises;
 }
 
-///////////////////
-// Original Code //
-///////////////////
+///////////////
+// Test Code //
+///////////////
 
-window.leakyThingRetainerSet = new Set();
-
-class LeakyThing {}
+let leakedThings = 0;
 
 document.getElementById("add-iframe").onclick = async () => {
-  const iframe = await getIframe();
+  console.log("Starting scenario");
+  leakedThings += 1;
+  const iframe = await getPatchedIframe("iframe.js");
+  try {
+    await iframe.contentWindow.wait(3000);
+  } catch (error) {
+    // With the fix above, the iframe promise will reject if the iframe is removed before wait() completes, and we will catch here and continue to clean up the LeakyThing.
+    console.log("Caught this error from iframe promise:", error.message);
+  }
+  leakedThings -= 1;
+  console.log(`All promises resolved - we have leaked ${leakedThings} things.`);
+};
+
+async function getPatchedIframe(scriptSrc) {
+  const iframe = await getIframe(scriptSrc);
   const rejectIframePromises = patchIframePromises(iframe.contentWindow);
 
   iframePromiseRejectFns.add(rejectIframePromises);
@@ -69,25 +81,10 @@ document.getElementById("add-iframe").onclick = async () => {
     iframePromiseRejectFns.delete(rejectIframePromises);
     rejectIframePromises();
   });
+  return iframe;
+}
 
-  console.log("Adding a LeakyThing to leakyThingRetainerArray.");
-  const leakyThing = new LeakyThing();
-  leakyThingRetainerSet.add(leakyThing);
-
-  try {
-    await iframe.contentWindow.wait(3000);
-  } catch (error) {
-    // With the fix above, the iframe promise will reject if the iframe is removed before wait() completes, and we will catch here and continue to clean up the LeakyThing.
-    console.log("Caught this error from iframe promise:", error.message);
-  }
-
-  leakyThingRetainerSet.delete(leakyThing);
-  console.log(
-    `Cleaned up a LeakyThing. ${window.leakyThingRetainerSet.size} LeakyThings remain.`
-  );
-};
-
-function getIframe() {
+function getIframe(scriptSrc) {
   return new Promise((resolve) => {
     const iframe = document.createElement("iframe");
     iframe.onload = () => resolve(iframe);
@@ -95,7 +92,7 @@ function getIframe() {
       <!DOCTYPE html>
       <html>
       <head>
-        <script type="text/javascript" src="./iframe.js"></script>
+        <script type="text/javascript" src="./${scriptSrc}"></script>
       </head>
       <body>
         <h1>Hi, I am an iframe.</h1>
@@ -108,9 +105,7 @@ function getIframe() {
 
 document.getElementById("remove-iframes").onclick = () => {
   document.getElementById("iframe-container").textContent = "";
-  console.log(
-    `Iframe removed. We have leaked ${window.leakyThingRetainerSet.size} LeakyThings right now.`
-  );
+  console.log(`Iframe removed.`);
 };
 
 document.getElementById("reject-all-promises").onclick = () => {
