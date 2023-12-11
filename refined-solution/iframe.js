@@ -24,3 +24,12 @@ window.fetchWithChainedWait = () => {
     );
   });
 };
+
+window.awaitMainWindowThenAwaitAgain = async (mainWindowPromise) => {
+  console.log("Starting to await main window promise");
+  await mainWindowPromise;
+  console.log("Finished awaiting main window promise. Returning another one.");
+  return new Promise((resolve) =>
+    setTimeout(() => resolve("Done with inside-iframe-promise"), 3000)
+  );
+};

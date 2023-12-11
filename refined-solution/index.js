@@ -4,6 +4,8 @@
 
 const iframePromiseRejectFns = new Set();
 
+let promiseCounter = 0;
+
 function patchIframePromises(windowContext) {
   const OriginalIframePromise = windowContext.Promise;
   let promiseRejectFns = new Set();
@@ -17,6 +19,9 @@ function patchIframePromises(windowContext) {
       return OriginalIframePromise;
     }
     constructor(executor) {
+      let promiseId = promiseCounter;
+      console.log(`Creating IframePromise ${promiseId}`);
+      promiseCounter += 1;
       super((resolve, reject) => {
         promiseRejectFns?.add(reject);
         executor(
@@ -30,6 +35,7 @@ function patchIframePromises(windowContext) {
           }
         );
       });
+      this.promiseId = promiseId;
     }
   }
   windowContext.Promise = IFramePromise;
@@ -164,6 +170,27 @@ document.getElementById("add-iframe-fetch-chained-wait-scenario").onclick =
       .finally(() => {
         console.log("Post-catch then() block called.");
       });
+    console.log(`All promises resolved.`);
+  };
+
+document.getElementById("add-iframe-outside-inside-scenario").onclick =
+  async () => {
+    console.log("Starting scenario");
+    leakedThings += 1;
+    const iframe = await getPatchedIframe();
+    const mainWindowWait = new Promise((resolve) => setTimeout(resolve, 3000));
+
+    try {
+      const result = await iframe.contentWindow.awaitMainWindowThenAwaitAgain(
+        mainWindowWait
+      );
+      console.log(
+        "finished awaiting awaitMainWindowThenAwaitAgain() - result:",
+        result
+      );
+    } catch (e) {
+      console.log("Main window caught this error", e);
+    }
     console.log(`All promises resolved.`);
   };
 
