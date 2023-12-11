@@ -51,6 +51,7 @@ function patchIframePromises(windowContext) {
     proxiedIframeWindow: createRevocableProxy(windowContext).proxy,
   };
 
+  // We're not actually using the "revoke" functionality of RevokableProxy in this PoC, but we might want to in the real solution to an extra layer of protection against leaks.
   function createRevocableProxy(target) {
     const revocables = [];
     const proxy = innerCreateRevocableProxy(target, revocables);
