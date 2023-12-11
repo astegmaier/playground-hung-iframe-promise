@@ -36,13 +36,13 @@
       For example, if code outside the iframe calls .catch().then() on an IframePromise, we want to make sure that we don't reject the last .then() promise when the iframe is removed.
     </p>
     <h3>Test Scenarios:</h3>
-    <ul>
+    <ol>
       <li><button id="add-iframe-await-scenario">Add Iframe - Await Scenario</button> - tests a simple await with try catch outside the iframe.</li>
       <li><button id="add-iframe-promise-chain-scenario">Add Iframe - Promise Chain Scenario</button> - tests to make sure that longer chains of try/catch/finally outside the iframe don't get short-circuited.</li>
       <li><button id="add-iframe-fetch-scenario">Add Iframe - Iframe Fetch Scenario</button> - tests the behavior of the promise returned by the native browser fetch function inside the iframe.</li>
       <li><button id="add-iframe-fetch-chained-wait-scenario">Add Iframe - Iframe Fetch Scenario With Chained Wait</button> - tests the native browser fetch function with a chained then (also inside the iframe).</li>
       <li><button id="add-iframe-outside-inside-scenario">Add Iframe - Awaiting A Main Window Promise Scenario</button> - tests behavior when the inside-iframe code awaits a promise created in the main window and starts another async op before returning.<b>Our fix does not work in this case.</b></li>
-    </ul>
+    </ol>
     <p>
       <button id="remove-iframes">Remove All Iframes</button>
       <button id="reject-all-promises">Reject All Promises</button>
