@@ -5,16 +5,15 @@
 const iframePromiseRejectFns = new Set();
 
 function patchIframePromises(windowContext) {
-  const OriginalIframePromise = windowContext.Promise;
   let promiseRejectFns = new Set();
-  class IFramePromise extends OriginalIframePromise {
+  class IFramePromise extends windowContext.Promise {
     // Our intention with setting Symbol.species to the original Promise class is to ensure that the things
     // returned by the then()/catch()/finally() methods are pure Promises and _not_ IframePromises.
     // We don't want to track or dispose these derived promises on iframe removal, because that could cause legitimate logic to halt.
     // For example, a "then" handler after a "catch" block would never run if the "then" promise was disposed.
     // These handlers might even be registered in outside-of-iframe code, which would be especially bad.
     static get [Symbol.species]() {
-      return OriginalIframePromise;
+      return windowContext.Promise;
     }
     constructor(executor) {
       super((resolve, reject) => {
@@ -43,13 +42,56 @@ function patchIframePromises(windowContext) {
       // We don't want to leak promiseRejection functions in the case where we've already rejected them.
       // This can happen in cases where derived promises are created after the iframe has been disposed.
       promiseRejectFns = null;
-      // By restoring the promise Prototype, we are being defensive to avoid the possibility that any late-created promises
-      // register additional promiseRejectFns which might leak retainers if they are not cleared.
-      windowContext.Promise = OriginalIframePromise;
     }
   };
 
-  return { rejectAllPromises };
+  return {
+    rejectAllPromises,
+    proxiedIframeWindow: createRevocableProxy(windowContext).proxy,
+  };
+
+  function createRevocableProxy(target) {
+    const revocables = [];
+    const proxy = innerCreateRevocableProxy(target, revocables);
+    return {
+      proxy,
+      revoke: () => {
+        revocables.forEach((r) => r());
+        // maybe try-catch here?
+      },
+    };
+  }
+
+  function innerCreateRevocableProxy(target, revocables) {
+    const { proxy, revoke } = Proxy.revocable(target, {
+      get(target, name) {
+        const originalValue = Reflect.get(target, name);
+        if (
+          (typeof originalValue !== "object" &&
+            typeof originalValue !== "function") ||
+          originalValue === null
+        ) {
+          return originalValue;
+        }
+        return innerCreateRevocableProxy(originalValue, revocables);
+      },
+      apply(target, thisArg, argArray) {
+        const returnValue = Reflect.apply(target, thisArg, argArray);
+        // Possibly check isThenable instead?
+        if (returnValue instanceof windowContext.Promise) {
+          console.log(
+            "The iframe proxy intercepted a promise about to be returned from an inside-iframe function and wrapped it in IframePromise"
+          );
+          return new IFramePromise((resolve, reject) =>
+            returnValue.then(resolve, reject)
+          );
+        }
+        return originalValue;
+      },
+    });
+    revocables.push(revoke);
+    return proxy;
+  }
 }
 
 ////////////////////
@@ -189,14 +231,16 @@ let leakedThings = 0;
 
 async function getPatchedIframeWindow() {
   const iframe = await getIframe();
-  const { rejectAllPromises } = patchIframePromises(iframe.contentWindow);
+  const { rejectAllPromises, proxiedIframeWindow } = patchIframePromises(
+    iframe.contentWindow
+  );
   iframePromiseRejectFns.add(rejectAllPromises);
   iframe.contentWindow.addEventListener("unload", () => {
     console.log(`Iframe unload event fired. Rejecting promises.`);
     iframePromiseRejectFns.delete(rejectAllPromises);
     rejectAllPromises();
   });
-  return iframe.contentWindow;
+  return proxiedIframeWindow;
 }
 
 function getIframe() {

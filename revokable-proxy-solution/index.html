@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hung Iframe Promise Playground - Revokable Proxy Solution</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/a11y-light.min.css"
+      integrity="sha512-WDk6RzwygsN9KecRHAfm9HTN87LQjqdygDmkHSJxVkVI7ErCZ8ZWxP6T8RvBujY1n2/E4Ac+bn2ChXnp5rnnHA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      iframe { 
+        width: 320px;
+        height: 100px;
+        background-color: lightgray;
+        border: 2px solid black;
+        box-sizing: border-box;
+      }
+      #iframe-container {
+        height: 110px;
+        background-color: grey;
+        padding: 5px;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>
+      Hung Iframe Promises Playground - Refined Solution
+    </h1>
+    <p>
+      This page shows an iteration of the fix <a href="../index.html">the original problem</a> of hung iframe promises in a general way.
+      In this approach, we extend the Promise class with a new version (IframePromise) that registers the 'reject' handlers so that they can be called when the iframe is removed.
+      We also use the Symbol.species property to ensure that we <em>don't</em> track 'derived' promises (i.e. promises returned from calling then/catch/finally on an IframePromise).
+      For example, if code outside the iframe calls .catch().then() on an IframePromise, we want to make sure that we don't reject the last .then() promise when the iframe is removed.
+    </p>
+    <p>
+      Unlike the <a href="../refined-solution/index.html">original "refined" solution</a>, we <i>don't</i> override the global Promise class in the iframe realm.
+      Instead we wrap the iframeWindow object in a recursive revokable proxy, and use this to intercept all function calls made from the main window to the iframe.
+      Then, if the function returns a promise, we wrap that promise in an IframePromise, before returning.
+    </p>
+    <h3>Test Scenarios:</h3>
+    <ol>
+      <li><button id="add-iframe-await-scenario">Add Iframe - Await Scenario</button> - tests a simple await with try catch outside the iframe.</li>
+      <li><button id="add-iframe-promise-chain-scenario">Add Iframe - Promise Chain Scenario</button> - tests to make sure that longer chains of try/catch/finally outside the iframe don't get short-circuited.</li>
+      <li><button id="add-iframe-fetch-scenario">Add Iframe - Iframe Fetch Scenario</button> - tests the behavior of the promise returned by the native browser fetch function inside the iframe.</li>
+      <li><button id="add-iframe-fetch-chained-wait-scenario">Add Iframe - Iframe Fetch Scenario With Chained Wait</button> - tests the native browser fetch function with a chained then (also inside the iframe).</li>
+      <li><button id="add-iframe-outside-inside-scenario">Add Iframe - Awaiting A Main Window Promise Scenario</button> - tests behavior when the inside-iframe code awaits a promise created in the main window and starts another async op before returning.<b>Our fix does not work in this case.</b></li>
+    </ol>
+    <p>
+      <button id="remove-iframes">Remove All Iframes</button>
+      <button id="reject-all-promises">Reject All Promises</button>
+    </p>
+    </div>
+    <hr />
+    <div id="iframe-container"></div>
+    <hr />
+    <div>
+      We are running the following JavaScript code on this page (see
+      <a href="https://github.com/astegmaier/playground-hung-iframe-promise"
+        >github repo</a
+      >):
+    </div>
+    <h2>Iframe Code (iframe.js)</h2>
+    <pre><code class="language-javascript" id="code-iframe"></code></pre>
+    <h2>Main Window Code (index.js)</h2>
+    <pre><code class="language-javascript" id="code"></code></pre>
+    <script src="./index.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"
+      integrity="sha512-bgHRAiTjGrzHzLyKOnpFvaEpGzJet3z4tZnXGjpsCcqOnAH6VGUx9frc5bcIhKTVLEiCO6vEhNAgx5jtLUYrfA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+      fetch("./index.js")
+        .then((response) => response.text())
+        .then((code) => (document.getElementById("code").textContent = code))
+        .then(() => hljs.highlightAll());
+      fetch("./iframe.js")
+        .then((response) => response.text())
+        .then((code) => (document.getElementById("code-iframe").textContent = code))
+        .then(() => hljs.highlightAll());
+    </script>
+  </body>
+</html>
