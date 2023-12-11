@@ -33,6 +33,8 @@ function patchIframePromises(windowContext) {
     }
   }
 
+  windowContext.Promise = IFramePromise;
+
   const rejectAllPromises = () => {
     console.log(`Rejecting ${promiseRejectFns?.size ?? 0} IframePromises.`);
     if (promiseRejectFns) {
